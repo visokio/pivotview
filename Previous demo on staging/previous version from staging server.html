@@ -1,0 +1,209 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Template Custom View</title>
+    <style>
+        html, body {
+
+            /* Ensure the body fills the view, so clicks are handled everywhere: */
+            width: 100%;
+            height: 100%;
+
+            /* General CSS for my custom view: */
+            font-size: 20px;
+            font-family: sans-serif;
+
+        }
+        table {
+            width: 100%;
+        }
+        td {
+            padding: 10px;
+            text-align: right;
+        }
+        td.h, td.diffh, td.totalh {
+            font-weight: bold;
+            background: white;
+        }
+        td.v {
+            background: #EEE;
+        }
+        td.diffv {
+            background: #DFE;
+        }
+        td.diffh, td.diffv {
+            color: #8CA;
+        }
+        td.totalv {
+            background: #DEF;
+        }
+        td.totalv, td.totalh {
+            color: #8AC;
+        }
+    </style>
+</head>
+
+<body>
+<!-- Load the Visokio custom view API, providing data querying and UI integration into Omniscope: -->
+<script src="/_global_/customview/v1/omniscope.js"></script>
+
+<!-- Element where we are going to inject content dynamically: -->
+<span id="main"></span>
+
+<script>
+    console.log("Initialising");
+    if (!omniscope || !omniscope.view) throw new Error("Omniscope chart API is not loaded");
+
+    // Ensure clicks on unoccupied space clear the selection in Omniscope, and close menus:
+    document.body.addEventListener("click", function() {
+        omniscope.view.whitespaceClick();
+    });
+
+    // This method takes the result of a Grid Query and updates the DOM to display it.
+    var render = function(data) {
+        console.log("Rendering", data);
+        var elem = document.getElementById("main");
+        elem.innerHTML = "";
+
+        var table = document.createElement("table");
+        elem.appendChild(table);
+
+        var row = document.createElement("tr");
+        table.appendChild(row);
+
+        var cell;
+
+        // blank corner:
+        cell = document.createElement("td");
+        cell.classList.add("h");
+        row.appendChild(cell);
+
+        for (var x=0; x<data.axes[1].headers.length; x++) {
+            if (x>0) {
+                // x diff header
+                cell = document.createElement("td");
+                row.appendChild(cell);
+                cell.classList.add("diffh");
+                cell.textContent = "\u0394";
+            }
+            // x value header
+            cell = document.createElement("td");
+            row.appendChild(cell);
+            cell.classList.add("h");
+            cell.textContent = data.axes[1].headers[x];
+        }
+
+        // x total header
+        cell = document.createElement("td");
+        row.appendChild(cell);
+        cell.classList.add("totalh");
+        cell.textContent = "Total";
+
+        // x spacer header
+        cell = document.createElement("td");
+        row.appendChild(cell);
+
+        for (var y=0; y<data.axes[0].headers.length; y++) {
+            row = document.createElement("tr");
+            table.appendChild(row);
+
+            // y header
+            cell = document.createElement("td");
+            row.appendChild(cell);
+            cell.textContent = data.axes[0].headers[y];
+            cell.classList.add("h");
+
+            var cellData, prevCellData;
+
+            var xtotal = 0;
+
+            for (var x=0; x<data.axes[1].headers.length; x++) {
+                cellData = data.cells[y][x];
+
+                if (x>0) {
+                    // x diff value
+                    prevCellData = data.cells[y][x-1];
+                    cell = document.createElement("td");
+                    cell.classList.add("diffv");
+                    row.appendChild(cell);
+                    if (prevCellData!==null && cellData!==null) { // if both cells have data present
+                        var currVal = cellData.main[0][0], prevVal = prevCellData.main[0][0];
+                        if (currVal!==null && prevVal!==null) {
+                            cell.textContent = currVal-prevVal;
+                            if (prevVal!==0) {
+                                var percent = Math.round(100*((currVal - prevVal) / prevVal));
+                                if (percent<0) percent = ""+percent; else percent = "+"+percent;
+                                cell.textContent += " ("+percent+"%)";
+                            }
+                        } else {
+                            // if either are null, don't show a difference value
+                        }
+                    }
+                    if (cellData!==null) xtotal += cellData.main[0][0];
+                }
+
+                // x value
+                cell = document.createElement("td");
+                cell.classList.add("v");
+                row.appendChild(cell);
+                if (cellData!==null) cell.textContent = cellData.main[0][0];
+            }
+
+            // x total
+            cell = document.createElement("td");
+            cell.classList.add("totalv");
+            row.appendChild(cell);
+            cell.textContent = xtotal;
+
+            // x spacer value
+            cell = document.createElement("td");
+            row.appendChild(cell);
+        }
+    };
+
+    // This method is called on load and when the configuration changes, such as filtering.
+    // It executes a new query, with render() in the callback.
+    var update = function() {
+        omniscope.view.busy(true); // Show the busy state indicator (spinning icon):
+
+        console.log(omniscope.view.context());
+        // Create a simple TableQueryInput object:
+        var query = {
+            axes: [
+                // Y:
+                { groupings: [ omniscope.view.context().options.items.myPaneY ] },
+                // X:
+                { groupings: [ omniscope.view.context().options.items.myPaneX ] }
+            ],
+            cellQueries: {
+                main: { measures: [ { function: "RECORD_COUNT" } ] }
+            },
+            input: {
+                filter: omniscope.view.context().dataConfig.filter // use the filter rule that applies to this view
+            }
+        };
+
+        console.log("Querying", query);
+        omniscope.query.builder(omniscope.view.endpoint())   // Use the Query API endpoint for the current file's data
+                .grid.data(query)
+                .on("load", function(event) {
+                    // On success, pass the TableQueryOutput object to render():
+                    render(event.data);
+                })
+                .on("error", function(err) {
+                    // On error, report to the enclosing application:
+                    omniscope.view.error(err.error);
+                })
+                .on("end", function() {
+                    omniscope.view.busy(false); // Hide the busy state indicator
+                })
+                .execute(); // Submit the query for execution
+    };
+
+    omniscope.view.on(["load", "update", "resize"], update);
+
+</script>
+</body>
+</html>
