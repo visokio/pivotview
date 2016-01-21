@@ -1,0 +1,37 @@
+html, body {
+
+    /* Ensure the body fills the view, so clicks are handled everywhere: */
+    width: 100%;
+    height: 100%;
+
+    /* General CSS for my custom view: */
+    font-size: 20px;
+    font-family: sans-serif;
+
+}
+table {
+    width: 100%;
+}
+td {
+    padding: 10px;
+    text-align: right;
+}
+td.h, td.diffh, td.totalh {
+    font-weight: bold;
+    background: white;
+}
+td.v {
+    background: #EEE;
+}
+td.diffv {
+    background: #DFE;
+}
+td.diffh, td.diffv {
+    color: #8CA;
+}
+td.totalv {
+    background: #DEF;
+}
+td.totalv, td.totalh {
+    color: #8AC;
+}

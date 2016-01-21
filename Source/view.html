@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Example Pivot view</title>
+    <link rel="stylesheet" href="stylesheet.css" />
+</head>
+
+<!--
+This is an example custom Pivot view.
+
+To use this in Omniscope, install Omniscope and open Pivot Differences v2.iok,
+then see:
+http://staging.omniscope.me/_global_/customview/v1/docs/
+
+Also read the top of render.js
+
+You'll need to add stylesheet.css and render.js to the view's resources,
+and should copy and paste this HTML file as the content of the view's index.html.
+
+The view options (pane axes) can be configured using the in-view "3 dots" menu, under the Navigation settings.
+
+Errors when using the query API are currently reported in a broken way. Look at the browser console and network
+responses to see the underlying query API error message.
+
+Alternatively open "standalone.html" in a browser.
+-->
+
+<body>
+
+<!-- Element where we are going to inject content dynamically: -->
+<span id="main"></span>
+
+<!-- Load the Visokio custom view API, providing data querying and UI integration into Omniscope: -->
+<script src="/_global_/customview/v1/omniscope.js"></script>
+
+<!-- Load our own pivot table render script -->
+<script src="render.js"></script>
+
+<script>
+    // Check that omniscope.js loaded correctly
+    if (!omniscope || !omniscope.view) throw new Error("Omniscope API is not loaded");
+
+    // Ensure clicks on unoccupied space clear the selection in Omniscope, and close menus:
+    document.body.addEventListener("click", function() { omniscope.view.whitespaceClick(); });
+
+    omniscope.view.on(["load", "update", "resize"], function() {
+        // This event is fired on load and when the configuration changes, such as filtering.
+
+        omniscope.view.busy(true); // Show the busy state indicator (spinning icon):
+
+        // Create a simple GridQueryInput object - see notes in render.js
+        var query = {
+            axes: [
+                // Use pane axis options from the view.
+                // Y:
+                { groupings: omniscope.view.context().options.items.myPaneY },
+                // X:
+                { groupings: omniscope.view.context().options.items.myPaneX }
+            ],
+            cellQueries: {
+                main: { measures: [ { function: "RECORD_COUNT" } ] }
+                // Some alternative suggestions:
+                //main: { measures: [ { inputField: "Coupon", function: "MEAN" } ] }
+                //main: { measures: [ { inputField: "Market Price", function: "SUM" } ] }
+            },
+            input: {
+                filter: omniscope.view.context().dataConfig.filter // use the filter rule that applies to this view
+            }
+        };
+
+        console.log("Query", query);
+        omniscope.query.builder(omniscope.view.endpoint()) // the endpoint for the enclosing view's data
+            .grid.data(query)
+            .on("load", function(event) {
+                console.log("Result", event.data);
+                render(event.data, document.getElementById("main"));
+            })
+            .on("error", function(err) {
+                omniscope.view.error(err);
+            })
+            .on("end", function() {
+                omniscope.view.busy(false); // Hide the busy state indicator
+            })
+            .execute(); // Submit the query for execution
+
+    });
+
+</script>
+</body>
+</html>
