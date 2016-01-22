@@ -1,0 +1,55 @@
+{
+  "name": "Pivot diffs",
+  "frameworkVersion": "v1",
+  "sandbox": false,
+  "autoPane": false,
+  "autoQuery": false,
+  "dataLimit": 10000,
+  "options": {
+    "items": {
+      "myPaneX": {
+        "displayName": "Pane X",
+        "type": "GROUPING",
+        "list": true,
+        "mandatory": true
+      },
+      "myPaneY": {
+        "displayName": "Pane Y",
+        "type": "GROUPING",
+        "list": true,
+        "mandatory": true
+      }
+    },
+    "structure": {
+      "toolbar": [],
+      "x": [
+        "myPaneX"
+      ],
+      "y": [
+        "myPaneY"
+      ]
+    }
+  },
+  "defaultOptions": {
+    "items": {
+      "myPaneX": [{
+        "inputField": "Year",
+        "type": "UNIQUE_VALUES",
+        "name": "Year"
+      }],
+      "myPaneY": [{
+        "inputField": "Month",
+        "type": "UNIQUE_VALUES",
+        "name": "Month"
+      }]
+    },
+    "pane": {
+      "headerWidth": 100,
+      "headerHeight": 30,
+      "paneWidth": 100,
+      "paneHeight": 75,
+      "xHeaderPlacement": "TOP",
+      "yHeaderPlacement": "LEFT"
+    }
+  }
+}
