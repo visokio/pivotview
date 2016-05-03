@@ -70,10 +70,18 @@ var render = function(data, elem) {
     row.appendChild(cell);
 
     var formatHeader = function(h) {
-        if (!h) return "";
-        if (!h.length) return "(All)";
-        if (h.length===1) return h[0];
-        return JSON.stringify(h);
+        if (!h) return document.createTextNode("");
+        if (!h.length) return document.createTextNode("(All)");
+        if (h.length===1) return document.createTextNode(h[0]);
+        var div = document.createElement("div");
+        for (var i=0; i<h.length; i++) {
+            var per = document.createElement("div");
+            per.appendChild(document.createTextNode(h[i]));
+            if (i>0) per.style.fontWeight = "normal";
+            if (i>2) per.style.fontStyle = "italic";
+            div.appendChild(per);
+        }
+        return div;
     };
 
     for (var x=0; x<data.axes[1].headers.length; x++) {
@@ -82,13 +90,13 @@ var render = function(data, elem) {
             cell = document.createElement("td");
             row.appendChild(cell);
             cell.classList.add("diffh");
-            cell.textContent = "\u0394";
+            cell.textContent = "→";//"\u0394";
         }
         // x value header
         cell = document.createElement("td");
         row.appendChild(cell);
         cell.classList.add("h");
-        cell.textContent = formatHeader(data.axes[1].headers[x]);
+        cell.appendChild(formatHeader(data.axes[1].headers[x]));
     }
 
     // x total header
@@ -108,7 +116,7 @@ var render = function(data, elem) {
         // y header
         cell = document.createElement("td");
         row.appendChild(cell);
-        cell.textContent = formatHeader(data.axes[0].headers[y]);
+        cell.appendChild(formatHeader(data.axes[0].headers[y]));
         cell.classList.add("h");
 
         var cellData, prevCellData;

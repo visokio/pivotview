@@ -20,16 +20,13 @@ and should copy and paste this HTML file as the content of the view's index.html
 
 The view options (pane axes) can be configured using the in-view "3 dots" menu, under the Navigation settings.
 
-Errors when using the query API are currently reported in a broken way. Look at the browser console and network
-responses to see the underlying query API error message.
-
 Alternatively open "standalone.html" in a browser.
 -->
 
 <body>
 
 <!-- Element where we are going to inject content dynamically: -->
-<span id="main"></span>
+<div id="main"></div>
 
 <!-- Load the Visokio custom view API, providing data querying and UI integration into Omniscope: -->
 <script src="/_global_/customview/v1/omniscope.js"></script>
@@ -61,6 +58,10 @@ Alternatively open "standalone.html" in a browser.
             cellQueries: {
                 // Measures
                 main: { measures: omniscope.view.context().options.items.measures }
+                // Some alternative suggestions:
+                //main: { measures: [ { function: "RECORD_COUNT" } ] }
+                //main: { measures: [ { inputField: "Coupon", function: "MEAN" } ] }
+                //main: { measures: [ { inputField: "Market Price", function: "SUM" } ] }
             },
             input: {
                 filter: omniscope.view.context().dataConfig.filter // use the filter rule that applies to this view
