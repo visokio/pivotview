@@ -7,6 +7,11 @@
   "dataLimit": 10000,
   "options": {
     "items": {
+      "measures": {
+        "displayName": "Measure",
+        "type": "MEASURE",
+        "mandatory": true
+      },
       "myPaneX": {
         "displayName": "Pane X",
         "type": "GROUPING",
@@ -21,7 +26,9 @@
       }
     },
     "structure": {
-      "toolbar": [],
+      "toolbar": [
+        "measures"
+      ],
       "x": [
         "myPaneX"
       ],

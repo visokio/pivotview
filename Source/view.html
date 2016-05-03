@@ -59,10 +59,8 @@ Alternatively open "standalone.html" in a browser.
                 { groupings: omniscope.view.context().options.items.myPaneX }
             ],
             cellQueries: {
-                main: { measures: [ { function: "RECORD_COUNT" } ] }
-                // Some alternative suggestions:
-                //main: { measures: [ { inputField: "Coupon", function: "MEAN" } ] }
-                //main: { measures: [ { inputField: "Market Price", function: "SUM" } ] }
+                // Measures
+                main: { measures: omniscope.view.context().options.items.measures }
             },
             input: {
                 filter: omniscope.view.context().dataConfig.filter // use the filter rule that applies to this view
@@ -71,18 +69,18 @@ Alternatively open "standalone.html" in a browser.
 
         console.log("Query", query);
         omniscope.query.builder(omniscope.view.endpoint()) // the endpoint for the enclosing view's data
-            .grid.data(query)
-            .on("load", function(event) {
-                console.log("Result", event.data);
-                render(event.data, document.getElementById("main"));
-            })
-            .on("error", function(err) {
-                omniscope.view.error(err);
-            })
-            .on("end", function() {
-                omniscope.view.busy(false); // Hide the busy state indicator
-            })
-            .execute(); // Submit the query for execution
+                .grid.data(query)
+                .on("load", function(event) {
+                    console.log("Result", event.data);
+                    render(event.data, document.getElementById("main"));
+                })
+                .on("error", function(err) {
+                    omniscope.view.error(err);
+                })
+                .on("end", function() {
+                    omniscope.view.busy(false); // Hide the busy state indicator
+                })
+                .execute(); // Submit the query for execution
 
     });
 
